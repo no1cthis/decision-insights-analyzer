@@ -13,20 +13,3 @@ export async function GET(req: NextRequest) {
   const decisions = await decisionRepository.getAllByUser(user.id, supabase);
   return NextResponse.json({ decisions });
 }
-
-// New summary endpoint for dashboard analytics
-export async function summary(req: NextRequest) {
-  const supabase = createSupabaseServerClient(req);
-  const dataSession = await supabase.auth.getUser();
-  const user = dataSession.data.user;
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const decisions = await decisionRepository.getAllByUser(user.id, supabase);
-  const categoryCounts: Record<string, number> = {};
-  for (const d of decisions) {
-    const cat = d.analysisResult?.category || 'Uncategorized';
-    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-  }
-  return NextResponse.json({ categoryCounts });
-} 

@@ -46,9 +46,3 @@ export async function PATCH(
   });
   return NextResponse.json({ decision: updated });
 }
-
-export async function GET(req: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createSupabaseServerClient(req, res);
-  // ...rest of the logic, update all decisionRepository calls to pass supabase
-} 
