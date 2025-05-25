@@ -2,27 +2,25 @@ import { createServerClient } from '@supabase/ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-// Exact public routes
-// const PUBLIC_ROUTES = new Set([
-//     "/",
-// ]);
 
 // Prefix public routes (e.g., for API or static folders)
-const PUBLIC_PREFIXES = ['/api/auth', "api/callback", '/public', '/auth', '/auth/callback'];
+const PUBLIC_PREFIXES = ['/api/auth']
 
-function isPublicRoute(pathname: string) {
-//   if (PUBLIC_ROUTES.has(pathname)) return true;
-  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+function isProtectedRoute(pathname: string) {
+  return !PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (isPublicRoute(pathname)) {
+  if (!isProtectedRoute(pathname)) {
     return NextResponse.next();
   }
 
-  const response = NextResponse.next();
+
+  const response = NextResponse.next({
+    request: req,
+  });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -33,19 +31,24 @@ export async function middleware(req: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
+            // Ensure cookies are set securely in production
+            response.cookies.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+            });
           });
         },
       },
     }
   );
 
-  const data = await supabase.auth.getUser();
-  const user = data.data.user;
+  // Always use getUser for secure auth validation
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     const loginUrl = new URL('/auth/login', req.url);
-    loginUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -54,7 +57,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Protect all routes except static files and Next.js internals
-    '/((?!_next/static|_next/image|favicon.ico|public|api/auth).*)',
+    '/api/:path*', // Protect all API routes
   ],
 }; 

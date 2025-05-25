@@ -9,8 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * @returns The created decision
  */
 export async function POST(req: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createSupabaseServerClient(req, res);
+  const supabase = createSupabaseServerClient(req.cookies);
   const dataSession = await supabase.auth.getUser();
   const user = dataSession.data.user;
 

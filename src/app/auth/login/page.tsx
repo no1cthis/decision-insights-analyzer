@@ -18,6 +18,7 @@ interface LoginFormValues {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const form = useForm<LoginFormValues>({
     defaultValues: {
       email: "",
@@ -27,7 +28,6 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   async function onSubmit(values: LoginFormValues) {
     setError(null);

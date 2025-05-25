@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createSupabaseServerClient(req, res);
+  const supabase = createSupabaseServerClient(req.cookies, res);
   const dataSession = await supabase.auth.getUser();
   const user = dataSession.data.user;
   if (!user) {
