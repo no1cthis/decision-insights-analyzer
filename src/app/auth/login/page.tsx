@@ -27,7 +27,6 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
 
   async function onSubmit(values: LoginFormValues) {
@@ -45,10 +44,20 @@ export default function LoginPage() {
 
   async function handleGoogleSignIn() {
     setError(null);
-    setGoogleLoading(true);
-    const data = await supabaseBrowserClient.auth.signInWithOAuth({ provider: "google", options: { redirectTo: "http://localhost:3000/auth/callback" } });
+    setLoading(true);
+    try{
+    const redirectTo =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/callback`
+        : undefined;
+    const data = await supabaseBrowserClient.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo }
+    });
     if (data.error) setError(data.error.message);
-    setGoogleLoading(false);
+    }finally{
+      setLoading(false);
+    }
   }
 
   return (
@@ -63,10 +72,10 @@ export default function LoginPage() {
             className="w-full mb-4 flex items-center justify-center gap-2"
             variant="outline"
             onClick={handleGoogleSignIn}
-            disabled={googleLoading}
+            disabled={loading}
           >
             <FcGoogle size={20} />
-            {googleLoading ? "Signing in with Google..." : "Sign in with Google"}
+            Sign in with Google
           </Button>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -100,9 +109,6 @@ export default function LoginPage() {
               />
               <div className="flex items-center justify-between">
                 <div />
-                <Link href="/auth/reset-password" className="text-sm font-medium text-primary hover:underline">
-                  Forgot password?
-                </Link>
               </div>
               {error && <ErrorMessage error={error} />}
               <Button type="submit" className="w-full" disabled={loading}>
