@@ -2,6 +2,8 @@
 
 A web application for capturing, analyzing, and tracking decision-making processes. Built with Next.js, Supabase, and OpenRouter AI.
 
+[LIVE DEMO](https://decision-insights-analyzer-production.up.railway.app/)
+
 ---
 
 ## Table of Contents
